@@ -140,7 +140,7 @@ class Board:
         marked_field_count = 0
         for column in self.board_field:
             for field in column:
-                if field.marked:
+                if field.marked and field.probability == 1.0:
                     marked_field_count += 1
         assert self.count >= marked_field_count
         return marked_field_count == self.count
