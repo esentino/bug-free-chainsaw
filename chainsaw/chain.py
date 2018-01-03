@@ -56,13 +56,13 @@ class Board:
                 if number_of_combination == 0:
                     self.mark_field(i)
                     continue
-                axe_probability = 1.0/number_of_combination
+                probability = 1.0/number_of_combination
 
                 for field in self.board_field[i]:
                     field.probability = 0.0
                 for combination in x_combinations:
                     match = zip(combination, column)
-                    self.add_probability_to_field(match, i, axe_probability)
+                    self.add_probability_to_field(match, i, probability)
                 self.mark_field(i)
             for i, row in enumerate(self.y_lines):
                 y_combinations = self.make_combinations(row, True)
@@ -70,40 +70,40 @@ class Board:
                 if number_of_combination == 0:
                     self.mark_field(i, True)
                     continue
-                axe_probability = 1.0/number_of_combination
+                probability = 1.0/number_of_combination
 
                 for field in self.board_field[:][i]:
                     field.probability = 0.0
                 for combination in y_combinations:
                     match = zip(combination, row)
-                    self.add_probability_to_field(match, i, axe_probability, True)
+                    self.add_probability_to_field(match, i, probability, True)
                 self.mark_field(i, True)
             return None
 
-    def add_probability_to_field(self, match, i, axe_probability, row=False):
+    def add_probability_to_field(self, match, i, probability, is_row=False):
         start = 0
         for (space, axe) in match:
             start += space
             for x in range(axe):
-                if row:
+                if is_row:
                     field = self.board_field[start+x][i]
                 else:
                     field = self.board_field[i][start+x]
                 if not field.marked:
-                    field.probability += axe_probability
+                    field.probability += probability
             start += axe
 
-    def mark_field(self, i, row=False):
-        fields = self.board_field[i]
-        if row:
+    def mark_field(self, i, is_row=False):
+        if is_row:
             fields = self.board_field[:][i]
-
+        else:
+            fields = self.board_field[i]
         for field in fields:
             if field.probability in [0.0, 1.0]:
                 field.marked = True
 
-    def make_combinations(self, column, row=False):
-        lenght = self.x_lenght if row else self.y_lenght
+    def make_combinations(self, column, is_row=False):
+        lenght = self.x_lenght if is_row else self.y_lenght
 
         number_of_space = len(column) + 1
         """
