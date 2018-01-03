@@ -51,8 +51,7 @@ class Board:
     def solve_board(self):
         while not self.check_solution():
             for i, column in enumerate(self.x_lines):
-                x_combinations = Board.make_combination_list(column,
-                                                             self.x_lenght)
+                x_combinations = self.make_combinations(column)
                 number_of_combination = len(x_combinations)
                 if number_of_combination == 0:
                     self.mark_field(i)
@@ -65,9 +64,8 @@ class Board:
                     match = zip(combination, column)
                     self.add_probability_to_field(match, i, axe_probability)
                 self.mark_field(i)
-            for i, row in enumerate(self.x_lines):
-                y_combinations = Board.make_combination_list(row,
-                                                             self.y_lenght)
+            for i, row in enumerate(self.y_lines):
+                y_combinations = self.make_combinations(row, True)
                 number_of_combination = len(y_combinations)
                 if number_of_combination == 0:
                     self.mark_field(i, True)
@@ -79,7 +77,7 @@ class Board:
                 for combination in y_combinations:
                     match = zip(combination, row)
                     self.add_probability_to_field(match, i, axe_probability, True)
-                self.mark_field(i)
+                self.mark_field(i, True)
             return None
 
     def add_probability_to_field(self, match, i, axe_probability, row=False):
@@ -101,11 +99,12 @@ class Board:
             fields = self.board_field[:][i]
 
         for field in fields:
-            if field.probability == 0.0 or field.probability == 1.0:
+            if field.probability in [0.0, 1.0]:
                 field.marked = True
 
-    def make_combination_list(column, lenght):
-        
+    def make_combinations(self, column, row=False):
+        lenght = self.x_lenght if row else self.y_lenght
+
         number_of_space = len(column) + 1
         """
             OXOXOXO    OXXXOO
