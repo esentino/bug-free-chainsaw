@@ -55,31 +55,35 @@ class Board:
                                                              self.x_lenght)
                 number_of_combination = len(x_combinations)
                 if number_of_combination == 0:
-                    for field in self.board_field[i]:
-                        if field.probability == 0.0:
-                            field.marked = True
+                    self.mark_field(i)
                     continue
                 axe_probability = 1.0/number_of_combination
 
                 for field in self.board_field[i]:
                     field.probability = 0.0
                 for combination in x_combinations:
-                    start = 0
                     match = zip(combination, column)
-                    for (space, axe) in match:
-                        start += space
-                        for x in range(axe):
-                            if not self.board_field[i][start+x].marked:
-                                self.board_field[i][start+x].probability += axe_probability
-                        start += axe
-                if number_of_combination == 0:
-                    for field in self.board_field[i]:
-                        if field.probability == 1.0:
-                            field.marked = True
+                    self.add_probability_to_field(match, i, axe_probability)
+                self.mark_field(i)
+
             for row in self.y_lines:
                 y_combinations = Board.make_combination_list(row,
                                                              self.y_lenght)
             return None
+
+    def add_probability_to_field(self, match, i, axe_probability):
+        start = 0
+        for (space, axe) in match:
+            start += space
+            for x in range(axe):
+                if not self.board_field[i][start+x].marked:
+                    self.board_field[i][start+x].probability += axe_probability
+            start += axe
+
+    def mark_field(self, i):
+        for field in self.board_field[i]:
+            if field.probability == 0.0 or field.probability == 1.0:
+                field.marked = True
 
     def make_combination_list(column, lenght):
         
