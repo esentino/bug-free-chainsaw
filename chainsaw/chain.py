@@ -21,6 +21,9 @@ class Board:
             result = yaml.load(stream)
             self.x_lines = result['xaxis']['lines']
             self.y_lines = result['yaxis']['lines']
+            sum_in_x = sum([sum(l) for l in self.x_lines])
+            sum_in_y = sum([sum(l) for l in self.y_lines])
+            assert sum_in_x == sum_in_y, "sum of marked field in x {} is not equal field y {}".format(sum_in_x, sum_in_y)
             self.x_lenght = len(self.x_lines)
             self.y_lenght = len(self.y_lines)
             self.board_field = [
