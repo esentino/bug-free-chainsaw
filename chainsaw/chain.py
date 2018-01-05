@@ -16,7 +16,7 @@ class Field:
     @probability.setter
     def probability(self, value):
         print(self)
-        assert value <= Fraction(1, 1), value
+        assert value <= Fraction(1, 1), "{} {}".format(self, value)
         self._probability = value
 
     def __repr__(self):
@@ -74,7 +74,8 @@ class Board:
                 probability = Fraction(1, number_of_combination)
 
                 for field in self.board_field[i]:
-                    field.probability = Fraction(0, 1)
+                    if not field.marked:
+                        field.probability = Fraction(0)
                 for combination in x_combinations:
                     match = zip(combination, column)
                     self.add_probability_to_field(match, i, probability)
@@ -87,8 +88,9 @@ class Board:
                     continue
                 probability = Fraction(1, number_of_combination)
 
-                for field in self.board_field[:][i]:
-                    field.probability = Fraction(0, 1)
+                for fields_row in self.board_field:
+                    if not fields_row[i].marked:
+                        fields_row[i].probability = Fraction(0)
                 for combination in y_combinations:
                     match = zip(combination, row)
                     self.add_probability_to_field(match, i, probability, True)
@@ -114,7 +116,7 @@ class Board:
         else:
             fields = self.board_field[i]
         for field in fields:
-            if field.probability in [Fraction(0, 1), Fraction(1, 1)]:
+            if field.probability in [Fraction(0), Fraction(1)]:
                 field.marked = True
 
     def make_combinations(self, column, is_row=False):
@@ -130,6 +132,7 @@ class Board:
         combination_list = Board.generate(column, lenght, number_of_space)
         return [combination for combination in combination_list]
 
+    @staticmethod
     def generate(column, lenght, number_of_space):
         if number_of_space < 2 or lenght < 1 or number_of_space < 2:
             return
@@ -155,7 +158,7 @@ class Board:
         marked_field_count = 0
         for column in self.board_field:
             for field in column:
-                if field.marked and field.probability == 1.0:
+                if field.marked and field.probability == Fraction(1):
                     marked_field_count += 1
         assert self.count >= marked_field_count
         return marked_field_count == self.count
