@@ -1,12 +1,23 @@
 import yaml
+from fractions import Fraction
 
 
 class Field:
     def __init__(self, col, row, marked=False, probability=0):
-        self.probability = probability
+        self._probability = probability
         self.col = col
         self.row = row
         self.marked = marked
+
+    @property
+    def probability(self):
+        return self._probability
+
+    @probability.setter
+    def probability(self, value):
+        print(self)
+        assert value <= Fraction(1, 1), value
+        self._probability = value
 
     def __repr__(self):
         return "Field({}, {}, {}, {})".format(self.col, self.row,
@@ -23,7 +34,8 @@ class Board:
             self.y_lines = result['yaxis']['lines']
             sum_in_x = sum([sum(l) for l in self.x_lines])
             sum_in_y = sum([sum(l) for l in self.y_lines])
-            assert sum_in_x == sum_in_y, "sum of marked field in x {} is not equal field y {}".format(sum_in_x, sum_in_y)
+            assert sum_in_x == sum_in_y, """sum of marked field in x {} is not
+                                            equal field y {}""".format(sum_in_x, sum_in_y)
             self.x_lenght = len(self.x_lines)
             self.y_lenght = len(self.y_lines)
             self.board_field = [
@@ -59,10 +71,10 @@ class Board:
                 if number_of_combination == 0:
                     self.mark_field(i)
                     continue
-                probability = 1.0/number_of_combination
+                probability = Fraction(1, number_of_combination)
 
                 for field in self.board_field[i]:
-                    field.probability = 0.0
+                    field.probability = Fraction(0, 1)
                 for combination in x_combinations:
                     match = zip(combination, column)
                     self.add_probability_to_field(match, i, probability)
@@ -73,10 +85,10 @@ class Board:
                 if number_of_combination == 0:
                     self.mark_field(i, True)
                     continue
-                probability = 1.0/number_of_combination
+                probability = Fraction(1, number_of_combination)
 
                 for field in self.board_field[:][i]:
-                    field.probability = 0.0
+                    field.probability = Fraction(0, 1)
                 for combination in y_combinations:
                     match = zip(combination, row)
                     self.add_probability_to_field(match, i, probability, True)
@@ -102,7 +114,7 @@ class Board:
         else:
             fields = self.board_field[i]
         for field in fields:
-            if field.probability in [0.0, 1.0]:
+            if field.probability in [Fraction(0, 1), Fraction(1, 1)]:
                 field.marked = True
 
     def make_combinations(self, column, is_row=False):
