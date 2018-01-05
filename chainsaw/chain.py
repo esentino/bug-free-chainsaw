@@ -131,24 +131,25 @@ class Board:
         return [combination for combination in combination_list]
 
     def generate(column, lenght, number_of_space):
-        if number_of_space > 1:
-            combination = [0 for i in range(number_of_space)]
-            end = False
-            while not end:
-                for number in range(number_of_space):
-                    if combination[number] + 1 == lenght:
-                        combination[number] = 0
-                        if number + 1 == number_of_space:
-                            end = True
-                        else:
-                            combination[number+1] += 1
-                    elif number == 0:
-                        combination[number] += 1
-                exclusive_zero = all([x > 0 for x in combination[1:-1]])
-                sum_of_column = sum(column)
-                exclusive_length = sum(combination) + sum_of_column
-                if exclusive_length == lenght and exclusive_zero:
-                    yield combination[:]
+        if number_of_space < 2 or lenght < 1 or number_of_space < 2:
+            return
+        combination = [0 for i in range(number_of_space)]
+        end = False
+        while not end:
+            for number in range(number_of_space):
+                if combination[number] + 1 == lenght:
+                    combination[number] = 0
+                    if number + 1 == number_of_space:
+                        end = True
+                    else:
+                        combination[number+1] += 1
+                elif number == 0:
+                    combination[number] += 1
+            exclusive_zero = all([x > 0 for x in combination[1:-1]])
+            sum_of_column = sum(column)
+            exclusive_length = sum(combination) + sum_of_column
+            if exclusive_length == lenght and exclusive_zero:
+                yield combination[:]
 
     def check_solution(self):
         marked_field_count = 0
