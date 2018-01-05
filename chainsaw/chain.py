@@ -131,7 +131,6 @@ class Board:
         return [combination for combination in combination_list]
 
     def generate(column, lenght, number_of_space):
-        sum_of_column = sum(column)
         if number_of_space > 1:
             combination = [0 for i in range(number_of_space)]
             end = False
@@ -146,6 +145,7 @@ class Board:
                     elif number == 0:
                         combination[number] += 1
                 exclusive_zero = all([x > 0 for x in combination[1:-1]])
+                sum_of_column = sum(column)
                 exclusive_length = sum(combination) + sum_of_column
                 if exclusive_length == lenght and exclusive_zero:
                     yield combination[:]
