@@ -15,7 +15,6 @@ class Field:
 
     @probability.setter
     def probability(self, value):
-        print(self)
         assert value <= Fraction(1, 1), "{} {}".format(self, value)
         self._probability = value
 
@@ -23,6 +22,24 @@ class Field:
         return "Field({}, {}, {}, {})".format(self.col, self.row,
                                               self.probability, self.marked)
 
+def percent(value):
+    if value < Fraction(1, 8):
+        return " "
+    if value < Fraction(2, 8):
+        return "▁"
+    if value < Fraction(3, 8):
+        return "▂"
+    if value < Fraction(4, 8):
+        return "▃"
+    if value < Fraction(5, 8):
+        return "▄"
+    if value < Fraction(6, 8):
+        return "▅"
+    if value < Fraction(7, 8):
+        return "▆"
+    if value < Fraction(8, 8):
+        return "▇"
+    return "█"
 
 class Board:
     """Board class."""
@@ -63,6 +80,14 @@ class Board:
             y {}""".format(self.x_lenght, self.y_lenght, self.board_field,
                            self.x_lines, self.y_lines)
 
+    def print_board(self):
+        display_board = ""
+        for col in self.board_field:
+            for field in col:
+                display_board += percent(field.probability)
+            display_board += "\n"
+        print(display_board)
+
     def solve_board(self):
         while not self.check_solution():
             for i, column in enumerate(self.x_lines):
@@ -71,7 +96,8 @@ class Board:
                 if number_of_combination == 0:
                     self.mark_field(i)
                     continue
-                probability = Fraction(1, number_of_combination)
+                x_combinations = self.get_not_collidate(x_combinations, column, i)
+                probability = Fraction(1, len(x_combinations))
 
                 for field in self.board_field[i]:
                     if not field.marked:
@@ -86,7 +112,8 @@ class Board:
                 if number_of_combination == 0:
                     self.mark_field(i, True)
                     continue
-                probability = Fraction(1, number_of_combination)
+                y_combinations = self.get_not_collidate(y_combinations, row, i, True)
+                probability = Fraction(1, len(y_combinations))
 
                 for fields_row in self.board_field:
                     if not fields_row[i].marked:
@@ -95,7 +122,32 @@ class Board:
                     match = zip(combination, row)
                     self.add_probability_to_field(match, i, probability, True)
                 self.mark_field(i, True)
-            return None
+            #return None
+
+    def get_not_collidate(self, combinations, row, i, is_row=False):
+        new_list = []
+        for combination in combinations:
+            start = 0
+            fail = False
+            for (space, axe) in zip(combination, row):
+                for x in range(space):
+                    axe_marked = Fraction(1)
+                    fail = self.is_collidate(is_row, start, x, i, axe_marked)
+                start += space
+                for x in range(axe):
+                    axe_unmarked = Fraction(0)
+                    fail = self.is_collidate(is_row, start, x, i, axe_unmarked)
+            if not fail:
+                new_list.append(combination)
+        return new_list
+
+    def is_collidate(self, is_row, start, x, i, axe_marked):
+        if is_row:
+            field = self.board_field[start+x][i]
+        else:
+            field = self.board_field[i][start+x]
+        return field.marked and field.probability == axe_marked
+
 
     def add_probability_to_field(self, match, i, probability, is_row=False):
         start = 0
@@ -154,7 +206,12 @@ class Board:
             if exclusive_length == lenght and exclusive_zero:
                 yield combination[:]
 
+    optimize_counter = 0
+
     def check_solution(self):
+        if self.optimize_counter > 100:
+            return True
+        self.optimize_counter += 1
         marked_field_count = 0
         for column in self.board_field:
             for field in column:
