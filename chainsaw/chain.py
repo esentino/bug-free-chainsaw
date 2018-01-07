@@ -1,6 +1,7 @@
 """Chain module."""
-import yaml
 from fractions import Fraction
+from typing import List
+import yaml
 
 
 class Field:
@@ -10,8 +11,8 @@ class Field:
     if marked and probability equal 0 means field is marked empty
     """
 
-    def __init__(self, col: int, row: int, marked=False,
-                 probability=Fraction(0)) -> None:
+    def __init__(self, col: int, row: int, marked: bool = False,
+                 probability: Fraction = Fraction(0)) -> None:
         """Init method.
 
         Args:
@@ -26,7 +27,8 @@ class Field:
         self.marked = marked
 
     @property
-    def probability(self):
+    def probability(self) -> Fraction:
+        """Return probability of field."""
         return self._probability
 
     @probability.setter
@@ -35,10 +37,21 @@ class Field:
         self._probability = value
 
     def __repr__(self):
+        """Return field representation."""
         return "Field({}, {}, {}, {})".format(self.col, self.row,
                                               self.probability, self.marked)
 
-def percent(value: Fraction) -> str:
+
+def probability_block(value: Fraction) -> str:
+    """Ugly method to translate probability to UTF-8 progress block.
+
+    Args:
+        value (Fraction): problability
+
+    Returns:
+        str: progress block [0/8, 1/8, 1/4, 3/8, 1/2, 5/8, 3/4, 7/8, 1/1]
+
+    """
     if value < Fraction(1, 8):
         return " "
     if value < Fraction(2, 8):
@@ -67,15 +80,15 @@ class Board:
         Args:
             filename (str): path for file
         """
-
         with open(filename) as stream:
             result = yaml.load(stream)
             self.x_lines = result['xaxis']['lines']
             self.y_lines = result['yaxis']['lines']
             sum_in_x = sum([sum(l) for l in self.x_lines])
             sum_in_y = sum([sum(l) for l in self.y_lines])
-            assert sum_in_x == sum_in_y, """sum of marked field in x {} is not
-                                            equal field y {}""".format(sum_in_x, sum_in_y)
+            assert_text = """sum of marked field in x {} is not
+                                            equal field y {}"""
+            assert sum_in_x == sum_in_y, assert_text.format(sum_in_x, sum_in_y)
             self.x_lenght = len(self.x_lines)
             self.y_lenght = len(self.y_lines)
             self.board_field = [
@@ -96,6 +109,7 @@ class Board:
                     self.count += value
 
     def __repr__(self):
+        """Return string represenation of Board object."""
         return """
             Board({}, {}) with fields:
             {} and lines:
@@ -104,14 +118,16 @@ class Board:
                            self.x_lines, self.y_lines)
 
     def print_board(self):
+        """Print goard in console."""
         display_board = ""
         for col in self.board_field:
             for field in col:
-                display_board += percent(field.probability)
+                display_board += probability_block(field.probability)
             display_board += "\n"
         print(display_board)
 
     def solve_board(self):
+        """Main methond responsible for find solution of game."""
         while not self.check_solution():
             for i, column in enumerate(self.x_lines):
                 x_combinations = self.make_combinations(column)
@@ -119,7 +135,8 @@ class Board:
                 if number_of_combination == 0:
                     self.mark_field(i)
                     continue
-                x_combinations = self.get_not_collidate(x_combinations, column, i)
+                x_combinations = self.get_not_collidate(x_combinations, column,
+                                                        i)
                 probability = Fraction(1, len(x_combinations))
 
                 for field in self.board_field[i]:
@@ -135,7 +152,8 @@ class Board:
                 if number_of_combination == 0:
                     self.mark_field(i, True)
                     continue
-                y_combinations = self.get_not_collidate(y_combinations, row, i, True)
+                y_combinations = self.get_not_collidate(y_combinations, row, i,
+                                                        True)
                 probability = Fraction(1, len(y_combinations))
 
                 for fields_row in self.board_field:
@@ -145,9 +163,9 @@ class Board:
                     match = zip(combination, row)
                     self.add_probability_to_field(match, i, probability, True)
                 self.mark_field(i, True)
-            #return None
 
-    def get_not_collidate(self, combinations, row, i: int, is_row=False):
+    def get_not_collidate(self, combinations, row, i: int,
+                          is_row: bool=False) -> list:
         new_list = []
         for combination in combinations:
             start = 0
@@ -194,7 +212,7 @@ class Board:
             if field.probability in [Fraction(0), Fraction(1)]:
                 field.marked = True
 
-    def make_combinations(self, column, is_row=False) -> []:
+    def make_combinations(self, column, is_row=False) -> list:
         lenght = self.x_lenght if is_row else self.y_lenght
 
         number_of_space = len(column) + 1
@@ -208,7 +226,7 @@ class Board:
         return [combination for combination in combination_list]
 
     @staticmethod
-    def generate(column: [int], lenght: int, number_of_space: int):
+    def generate(column: List[int], lenght: int, number_of_space: int):
         if number_of_space < 2 or lenght < 1 or number_of_space < 2:
             return
         combination = [0 for i in range(number_of_space)]
