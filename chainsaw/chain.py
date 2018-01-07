@@ -1,9 +1,25 @@
+"""Chain module."""
 import yaml
 from fractions import Fraction
 
 
 class Field:
-    def __init__(self, col, row, marked=False, probability=0):
+    """Class reprent singe field on board.
+
+    if marked and probability equal 1 means field is marked full
+    if marked and probability equal 0 means field is marked empty
+    """
+
+    def __init__(self, col: int, row: int, marked=False,
+                 probability=Fraction(0)) -> None:
+        """Init method.
+
+        Args:
+            col (int): column position
+            row (int): row position
+            marked (boolean): is marked
+            probability (float): change to marked
+        """
         self._probability = probability
         self.col = col
         self.row = row
@@ -14,7 +30,7 @@ class Field:
         return self._probability
 
     @probability.setter
-    def probability(self, value):
+    def probability(self, value: Fraction):
         assert value <= Fraction(1, 1), "{} {}".format(self, value)
         self._probability = value
 
@@ -22,7 +38,7 @@ class Field:
         return "Field({}, {}, {}, {})".format(self.col, self.row,
                                               self.probability, self.marked)
 
-def percent(value):
+def percent(value: Fraction) -> str:
     if value < Fraction(1, 8):
         return " "
     if value < Fraction(2, 8):
@@ -41,10 +57,17 @@ def percent(value):
         return "▇"
     return "█"
 
+
 class Board:
     """Board class."""
 
-    def __init__(self, filename):
+    def __init__(self, filename: str) -> None:
+        """Init method for board class.
+
+        Args:
+            filename (str): path for file
+        """
+
         with open(filename) as stream:
             result = yaml.load(stream)
             self.x_lines = result['xaxis']['lines']
@@ -124,7 +147,7 @@ class Board:
                 self.mark_field(i, True)
             #return None
 
-    def get_not_collidate(self, combinations, row, i, is_row=False):
+    def get_not_collidate(self, combinations, row, i: int, is_row=False):
         new_list = []
         for combination in combinations:
             start = 0
@@ -141,15 +164,15 @@ class Board:
                 new_list.append(combination)
         return new_list
 
-    def is_collidate(self, is_row, start, x, i, axe_marked):
+    def is_collidate(self, is_row, start, x: int, i: int, axe_marked) -> bool:
         if is_row:
             field = self.board_field[start+x][i]
         else:
             field = self.board_field[i][start+x]
         return field.marked and field.probability == axe_marked
 
-
-    def add_probability_to_field(self, match, i, probability, is_row=False):
+    def add_probability_to_field(self, match, i: int, probability: Fraction,
+                                 is_row=False) -> None:
         start = 0
         for (space, axe) in match:
             start += space
@@ -171,7 +194,7 @@ class Board:
             if field.probability in [Fraction(0), Fraction(1)]:
                 field.marked = True
 
-    def make_combinations(self, column, is_row=False):
+    def make_combinations(self, column, is_row=False) -> []:
         lenght = self.x_lenght if is_row else self.y_lenght
 
         number_of_space = len(column) + 1
@@ -185,7 +208,7 @@ class Board:
         return [combination for combination in combination_list]
 
     @staticmethod
-    def generate(column, lenght, number_of_space):
+    def generate(column: [int], lenght: int, number_of_space: int):
         if number_of_space < 2 or lenght < 1 or number_of_space < 2:
             return
         combination = [0 for i in range(number_of_space)]
@@ -207,9 +230,10 @@ class Board:
                 yield combination[:]
 
     optimize_counter = 0
+    optimize_max = 100
 
-    def check_solution(self):
-        if self.optimize_counter > 100:
+    def check_solution(self) -> bool:
+        if self.optimize_counter > self.optimize_max:
             return True
         self.optimize_counter += 1
         marked_field_count = 0
